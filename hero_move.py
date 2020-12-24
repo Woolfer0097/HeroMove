@@ -4,7 +4,6 @@ import os
 
 WIDTH, HEIGHT = 550, 400
 FPS = 50
-STEP = 50
 
 
 def terminate():
@@ -57,7 +56,6 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos[0] + 15, tile_height * pos[1] + 5)
         self.pos = (x, y)
-# if not pygame.sprite.collide_mask(self, tiles_group)
 
 
 def start_screen():
@@ -85,6 +83,8 @@ def start_screen():
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 def generate_level(level):
@@ -118,7 +118,7 @@ def move_hero(hero, direction):
             hero.move(x + 1, y)
 
 
-def main():
+def game():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -132,7 +132,6 @@ def main():
                     move_hero(player, "left")
                 elif event.key == pygame.K_RIGHT:
                     move_hero(player, "right")
-        screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
         clock.tick(FPS)
@@ -157,4 +156,4 @@ if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     start_screen()
-    main()
+    game()
