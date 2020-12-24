@@ -4,6 +4,7 @@ import os
 
 WIDTH, HEIGHT = 550, 400
 FPS = 50
+STEP = 50
 
 
 def terminate():
@@ -47,28 +48,23 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.image = player_image
-        self.rect = self.image.get_rect()
-        self.rect = self.rect.move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.pos = (pos_x, pos_y)
 
-    def update(self, *args):
-        if args and args[0].type == pygame.KEYDOWN:
-            if args[0].key == pygame.K_LEFT:
-                self.rect.x -= tile_width
-            elif args[0].key == pygame.K_RIGHT:
-                self.rect.x += tile_width
-            elif args[0].key == pygame.K_DOWN:
-                self.rect.y += tile_height
-            elif args[0].key == pygame.K_UP:
-                self.rect.y -= tile_height
+    def move(self, x, y):
+        pos = (x, y)
+        self.rect = self.image.get_rect().move(
+            tile_width * pos[0] + 15, tile_height * pos[1] + 5)
+        self.pos = (x, y)
 # if not pygame.sprite.collide_mask(self, tiles_group)
 
 
 def start_screen():
     intro_text = ["ЗАСТАВКА", "",
-                  "Правила игры",
-                  "Если в правилах несколько строк,",
-                  "приходится выводить их построчно"]
+                  "Перемещение героя",
+                  "Ходите стрелками",
+                  "Влево Вверх Вниз Вправо"]
 
     bg = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(bg, (0, 0))
@@ -82,6 +78,13 @@ def start_screen():
         intro_rect.x = 10
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
 
 
 def generate_level(level):
@@ -99,21 +102,41 @@ def generate_level(level):
     return new_player, x, y
 
 
+def move_hero(hero, direction):
+    x, y = hero.pos
+    if direction == "down":
+        if y < level_y and level[x][y + 1] == ".":
+            hero.move(x, y + 1)
+    elif direction == "up":
+        if y > 0 and level[x][y - 1] == ".":
+            hero.move(x, y - 1)
+    elif direction == "left":
+        if y > 0 and level[x - 1][y] == ".":
+            hero.move(x - 1, y)
+    elif direction == "right":
+        if y < level_x and level[x + 1][y] == ".":
+            hero.move(x + 1, y)
+
+
 def main():
-    player = None
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                player, level_x, level_y = generate_level(load_level('map.txt'))
-            if player:
-                player.update(event)
-        start_screen()
-        all_sprites.draw(screen)
-        pygame.display.flip()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    move_hero(player, "down")
+                elif event.key == pygame.K_UP:
+                    move_hero(player, "up")
+                elif event.key == pygame.K_LEFT:
+                    move_hero(player, "left")
+                elif event.key == pygame.K_RIGHT:
+                    move_hero(player, "right")
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        player_group.draw(screen)
         clock.tick(FPS)
+        pygame.display.flip()
 
 
 if __name__ == '__main__':
@@ -130,5 +153,8 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
+    level = [i.replace("@", ".") for i in load_level('map.txt')]
+    player, level_x, level_y = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
+    start_screen()
     main()
