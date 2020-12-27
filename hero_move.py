@@ -105,16 +105,16 @@ def generate_level(level):
 def move_hero(hero, direction):
     x, y = hero.pos
     if direction == "down":
-        if y < level_y and level[x][y + 1] == ".":
+        if y < level_y and level[y + 1][x] != "#":
             hero.move(x, y + 1)
     elif direction == "up":
-        if y > 0 and level[x][y - 1] == ".":
+        if y > 0 and level[y - 1][x] != "#":
             hero.move(x, y - 1)
     elif direction == "left":
-        if y > 0 and level[x - 1][y] == ".":
+        if x >= 0 and level[y][x - 1] != "#":
             hero.move(x - 1, y)
     elif direction == "right":
-        if y < level_x and level[x + 1][y] == ".":
+        if x <= level_x and level[y][x + 1] != "#":
             hero.move(x + 1, y)
 
 
